@@ -1,0 +1,13 @@
+# Training outputs
+logs/
+results/
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+
+# Python
+__pycache__/
+*.pyc
