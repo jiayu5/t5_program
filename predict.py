@@ -1,6 +1,7 @@
 import numpy as np
 import numpy as np
 import torch
+import evaluate
 from torch.utils.data import DataLoader
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, DataCollatorForSeq2Seq, Trainer, TrainingArguments
 
@@ -38,6 +39,13 @@ trainer = Trainer(
     data_collator=data_collator
 )
 
+def print_predictions(predictions, labels):
+    bleu = evaluate.load('bleu')
+    for i in range(min(5, len(predictions))):
+        print(f"Prediction: {predictions[i]}")
+        print(f"Label: {labels[i]}")
+        print("-" * 50)
+    print(f"BLEU Score: {bleu.compute(predictions=predictions[i:i+1], references=[[label] for label in labels[i:i+1]], smooth=True)}")
 
 def predict_with_trainer():
     predict_results = trainer.predict(test_dataset=eval_data)
@@ -51,10 +59,7 @@ def predict_with_trainer():
         predictions, skip_special_tokens=True)
     decoded_labels = tokenizer.batch_decode(labels, skip_special_tokens=True)
 
-    for i in range(min(5, len(decoded_predictions))):
-        print(f"Prediction: {decoded_predictions[i]}")
-        print(f"Label: {decoded_labels[i]}")
-        print("-" * 50)
+    print_predictions(decoded_predictions, decoded_labels)
 
 
 def predict_with_dataloaders():
@@ -82,10 +87,8 @@ def predict_with_dataloaders():
             labels[labels == -100] = tokenizer.pad_token_id
             decoded_labels = tokenizer.batch_decode(
                 labels, skip_special_tokens=True)
-            for i in range(min(5, len(predicts))):
-                print(f"Prediction: {predicts[i]}")
-                print(f"Label: {decoded_labels[i]}")
-                print("-" * 50)
+            
+            print_predictions(predicts, decoded_labels)
 
 
 # predict_with_trainer()
