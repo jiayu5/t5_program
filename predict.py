@@ -1,7 +1,7 @@
 import numpy as np
 import numpy as np
 import torch
-import evaluate
+from nltk.translate.bleu_score import sentence_bleu, SmoothingFunction
 from torch.utils.data import DataLoader
 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer, DataCollatorForSeq2Seq, Trainer, TrainingArguments
 
@@ -40,12 +40,12 @@ trainer = Trainer(
 )
 
 def print_predictions(predictions, labels):
-    bleu = evaluate.load('bleu')
     for i in range(min(5, len(predictions))):
         print(f"Prediction: {predictions[i]}")
         print(f"Label: {labels[i]}")
+        smooth_score = sentence_bleu([list(labels[i])], list(predictions[i]), weights=(0.7, 0.3, 0, 0), smoothing_function=SmoothingFunction().method4)
+        print(f"Smoothed BLEU Score: {smooth_score:.4f}")
         print("-" * 50)
-    print(f"BLEU Score: {bleu.compute(predictions=predictions[i:i+1], references=[[label] for label in labels[i:i+1]], smooth=True)}")
 
 def predict_with_trainer():
     predict_results = trainer.predict(test_dataset=eval_data)
